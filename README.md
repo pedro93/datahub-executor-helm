@@ -6,7 +6,7 @@ This repository contains Helm charts for deploying the DataHub Remote Executor, 
 
 ## Support
 
-Looking for support? Please reach out to [support@acryl.io](mailto://support@acryl.io). 
+Looking for support? Please reach out to [help@acryl.io](mailto://help@acryl.io). 
 
 ## FAQ
 
