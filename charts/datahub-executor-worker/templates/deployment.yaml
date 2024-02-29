@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "datahub-executor-worker.fullname" . }}
+  labels:
+    {{- include "datahub-executor-worker.labels" . | nindent 4 }}
+spec:
+  replicas: {{if .Values.global.readonly}} 0 {{else}} {{ .Values.replicaCount }} {{end}}
+  selector:
+    matchLabels:
+      {{- include "datahub-executor-worker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "datahub-executor-worker.selectorLabels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "datahub-executor-worker.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+      {{- if .Values.extraVolumes }}
+        {{ toYaml .Values.extraVolumes | nindent 8 }}
+      {{- end }}
+      initContainers:
+      {{- if .Values.extraInitContainers }}
+      {{- .Values.extraInitContainers | toYaml | nindent 6 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ required "image tag is required" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          livenessProbe:
+            exec:
+              command:
+              - /health_status
+              - /tmp/worker_liveness_heartbeat
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            exec:
+              command:
+              - /health_status
+              - /tmp/worker_readiness_heartbeat
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          env:
+            - name: DATAHUB_GMS_URL
+              value: {{ ((.Values.global.datahub).gms).url }}
+            - name: DATAHUB_GMS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ ((.Values.global.datahub).gms).secretRef }}
+                  key: {{ ((.Values.global.datahub).gms).secretKey }}
+            - name: DATAHUB_EXECUTOR_MODE
+              value: "worker"
+            - name: DATAHUB_EXECUTOR_WORKER_ID
+              value: {{ .Values.global.datahub.executor.worker_id | quote }}
+            - name: DATAHUB_EXECUTOR_INGESTION_MAX_WORKERS
+              value: {{ .Values.global.datahub.executor.ingestions.max_workers | quote }}
+            - name: DATAHUB_EXECUTOR_INGESTION_SIGNAL_POLL_INTERVAL
+              value: {{ .Values.global.datahub.executor.ingestions.signal_poll_interval | quote }}
+            - name: DATAHUB_EXECUTOR_MONITORS_MAX_WORKERS
+              value: {{ .Values.global.datahub.executor.monitors.max_workers | quote }}
+          {{- if .Values.extraEnvs }}
+            {{ toYaml .Values.extraEnvs | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+          {{- if .Values.extraVolumeMounts }}
+            {{ toYaml .Values.extraVolumeMounts | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

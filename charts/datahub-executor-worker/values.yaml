@@ -1,0 +1,105 @@
+global:
+  datahub:
+    gms:
+      secretRef: datahub-access-token-secret
+      secretKey: datahub-access-token-secret-key
+      url: https://datahub.acryl.io/gms
+    executor:
+      worker_id: "default"
+      ingestions:
+        max_workers: 4
+        signal_poll_interval: 2
+      monitors:
+        max_workers: 10
+
+replicaCount: 1
+
+revisionHistoryLimit: 1
+
+image:
+  repository: 795586375822.dkr.ecr.us-west-2.amazonaws.com/datahub-executor
+  pullPolicy: Always
+  tag: head
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+terminationGracePeriodSeconds: 150
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podAnnotations: {}
+  # co.elastic.logs/enabled: "true"
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP # ClusterIP or NodePort
+  port: 9004
+  targetPort: http
+  protocol: TCP
+  name: http
+  # Annotations to add to the service, this will help in adding
+  # Internal load balancer or various other annotation support in AWS
+  annotations: {}
+    # service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+
+serviceMonitor:
+  create: false
+
+extraLabels: {}
+
+extraEnvs: []
+
+extraVolumes: []
+
+extraVolumeMounts: []
+
+extraInitContainers: []
+
+extraSidecars: []
+
+lifecycle: {}
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+exporters: {}
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 60
+  failureThreshold: 3
+  timeoutSeconds: 5
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 60
+  failureThreshold: 3
+  timeoutSeconds: 5
