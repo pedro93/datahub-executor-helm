@@ -55,22 +55,6 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-service:
-  type: ClusterIP # ClusterIP or NodePort
-  port: 9004
-  targetPort: http
-  protocol: TCP
-  name: http
-  # Annotations to add to the service, this will help in adding
-  # Internal load balancer or various other annotation support in AWS
-  annotations: {}
-    # service.beta.kubernetes.io/aws-load-balancer-internal: "true"
-
-serviceMonitor:
-  create: false
-
-extraLabels: {}
-
 extraEnvs: []
 
 extraVolumes: []
@@ -79,10 +63,6 @@ extraVolumeMounts: []
 
 extraInitContainers: []
 
-extraSidecars: []
-
-lifecycle: {}
-
 resources: {}
 
 nodeSelector: {}
@@ -90,8 +70,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-exporters: {}
 
 livenessProbe:
   initialDelaySeconds: 60
