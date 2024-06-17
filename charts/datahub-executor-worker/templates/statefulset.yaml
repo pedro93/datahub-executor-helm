@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "datahub-executor-worker.fullname" . }}
   labels:
@@ -12,6 +12,32 @@ spec:
   selector:
     matchLabels:
       {{- include "datahub-executor-worker.selectorLabels" . | nindent 6 }}
+  {{- if .Values.persistentVolume.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        {{- with .Values.persistentVolume.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.persistentVolume.labels }}
+        labels:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        name: executor-storage-volume
+      spec:
+        accessModes:
+          {{ toYaml .Values.persistentVolume.accessModes }}
+      {{- if .Values.persistentVolume.storageClass }}
+      {{- if (eq "-" .Values.persistentVolume.storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: "{{ .Values.persistentVolume.storageClass }}"
+      {{- end }}
+      {{- end }}
+        resources:
+          requests:
+            storage: "{{ .Values.persistentVolume.size }}"
+  {{- end }}
   template:
     metadata:
     {{- with .Values.podAnnotations }}
@@ -87,6 +113,10 @@ spec:
             {{ toYaml .Values.extraEnvs | nindent 12 }}
           {{- end }}
           volumeMounts:
+          {{- if .Values.persistentVolume.enabled }}
+            - name: executor-storage-volume
+              mountPath: {{ .Values.persistentVolume.mountPath }}
+          {{- end }}
           {{- if .Values.extraVolumeMounts }}
             {{ toYaml .Values.extraVolumeMounts | nindent 10 }}
           {{- end }}

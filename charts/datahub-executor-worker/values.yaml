@@ -70,7 +70,7 @@ extraPodLabels: {}
 resources:
   requests:
     memory: "8Gi"
-    cpu: "2"
+    cpu: "4"
 
 nodeSelector: {}
 
@@ -89,3 +89,15 @@ readinessProbe:
   periodSeconds: 60
   failureThreshold: 3
   timeoutSeconds: 5
+
+persistentVolume:
+  enabled: false
+  accessModes:
+    - ReadWriteOnce
+  annotations: {}
+  labels: {}
+  existingClaim: ""
+  mountPath: /tmp/datahub
+  size: 100Gi
+  # storageClass: "-"
+  subPath: ""
