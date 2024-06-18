@@ -20,7 +20,7 @@ image:
   # GCP: us-docker.pkg.dev/acryl-prod/datahub/datahub-executor
   repository: 795586375822.dkr.ecr.us-west-2.amazonaws.com/datahub-executor
   pullPolicy: Always
-  tag: v0.3.1.5-acryl
+  tag: v0.3.2.6
 
 imagePullSecrets: []
 nameOverride: ""
@@ -44,8 +44,8 @@ serviceAccount:
 podAnnotations: {}
   # co.elastic.logs/enabled: "true"
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  fsGroup: 1000
 
 securityContext: {}
   # capabilities:
