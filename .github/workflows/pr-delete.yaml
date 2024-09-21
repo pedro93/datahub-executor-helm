@@ -1,0 +1,56 @@
+name: Delete PR Helm Charts
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'branch name to delete'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Extract branch name
+        shell: bash
+        run: |
+          echo "branch=$(echo ${{ github.event.inputs.branch }})" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Download YQ
+        uses: chrisdickinson/setup-yq@v1.0.1
+        with:
+          yq-version: v4.28.2
+
+      - name: Debug step
+        run: |
+          echo "Branch: ${{ steps.extract_branch.outputs.branch }}"
+          echo "Chart version: 0.0.0-${{ steps.extract_branch.outputs.branch }}"
+          cat pr/index.yaml | yq '.entries.datahub-executor-worker[] | select(.version | test("${{ steps.extract_branch.outputs.branch }}"))'
+          find pr/ -name '*${{ steps.extract_branch.outputs.branch }}*'
+
+      - name: Delete PR Helm charts
+        run: |
+          cat pr/index.yaml | yq 'del(.entries.datahub-executor-worker[] | select(.version | test("${{ steps.extract_branch.outputs.branch }}")))' > pr/index.yaml
+          git status
+          git ls-files --deleted | xargs git add --all
+          # Ensure that apiVersion exists
+          yq -i '.apiVersion = "v1"' pr/index.yaml
+          git add pr/index.yaml
+          git status
+          git commit -m "Deleted all Helm charts from branch: ${{ steps.extract_branch.outputs.branch }}"
+          git push

@@ -1,0 +1,53 @@
+name: Publish PR Helm Charts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch history
+        run: git fetch --prune --unshallow
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Extract branch name
+        shell: bash
+        run: |
+          echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+          echo "commit=$(echo ${{ github.sha }} | cut -c -7 )" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Debug step
+        run: |
+          echo "Branch: ${{ steps.extract_branch.outputs.branch }}"
+          echo "Commit: ${{ steps.extract_branch.outputs.commit }}"
+          echo "Sha: ${{ github.sha }}"
+          echo "Latest Chart version: 0.0.0-${{ steps.extract_branch.outputs.branch }}"
+          echo "Specific Chart version: 0.0.0-${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_branch.outputs.commit }}"
+
+      - name: Publish Helm charts for specific commit
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          charts_url: https://executor-helm.acryl.io
+          target_dir: pr
+          chart_version: 0.0.0-${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_branch.outputs.commit }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Latest PR Helm charts
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          charts_url: https://executor-helm.acryl.io
+          target_dir: pr
+          chart_version: 0.0.0-${{ steps.extract_branch.outputs.branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
