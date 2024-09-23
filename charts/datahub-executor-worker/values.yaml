@@ -63,6 +63,8 @@ extraVolumeMounts: []
 
 extraInitContainers: []
 
+extraCaCerts: {}
+
 extraLabels: {}
 
 extraPodLabels: {}
