@@ -59,10 +59,40 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
+      {{- with .Values.extraCaCerts }}
+          - name: ca-certs
+            emptyDir: {}
+      {{- range $key, $value := . }}
+          - name: {{ $key }}
+            secret:
+              secretName: {{ $value }}
+      {{- end }}
+      {{- end }}
       {{- if .Values.extraVolumes }}
         {{ toYaml .Values.extraVolumes | nindent 8 }}
       {{- end }}
       initContainers:
+      {{- if .Values.extraCaCerts }}
+        - name: install-ca-certs
+          image: "{{ .Values.image.repository }}:{{ required "image tag is required" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - update-ca-certificates && cp -Lr /etc/ssl/certs/. /mnt/ca-certs/
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          volumeMounts:
+            - name: ca-certs
+              mountPath: /mnt/ca-certs
+            {{- with .Values.extraCaCerts -}}
+            {{ range $key, $value := . }}
+            - mountPath: "/usr/local/share/ca-certificates/{{ $key }}"
+              name: {{ $key | quote }}
+              readOnly: true
+            {{- end }}
+            {{- end }}
+      {{- end }}
       {{- if .Values.extraInitContainers }}
       {{- .Values.extraInitContainers | toYaml | nindent 6 }}
       {{- end }}
@@ -113,6 +143,10 @@ spec:
             {{ toYaml .Values.extraEnvs | nindent 12 }}
           {{- end }}
           volumeMounts:
+            {{- if .Values.extraCaCerts }}
+            - name: ca-certs
+              mountPath: /etc/ssl/certs
+            {{- end }}
           {{- if .Values.persistentVolume.enabled }}
             - name: executor-storage-volume
               mountPath: {{ .Values.persistentVolume.mountPath }}
