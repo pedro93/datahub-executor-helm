@@ -12,6 +12,8 @@ global:
       monitors:
         max_workers: 10
 
+workloadKind: Deployment
+
 replicaCount: 1
 
 revisionHistoryLimit: 1
@@ -93,6 +95,7 @@ readinessProbe:
   timeoutSeconds: 5
 
 persistentVolume:
+  # Requires workloadKind: StatefulSet
   enabled: false
   accessModes:
     - ReadWriteOnce
