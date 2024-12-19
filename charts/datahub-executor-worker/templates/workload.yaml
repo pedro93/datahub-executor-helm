@@ -142,8 +142,12 @@ spec:
               value: {{ .Values.global.datahub.executor.ingestions.signal_poll_interval | quote }}
             - name: DATAHUB_EXECUTOR_MONITORS_MAX_WORKERS
               value: {{ .Values.global.datahub.executor.monitors.max_workers | quote }}
-          {{- if .Values.extraEnvs }}
+          {{- if .Values.extraEnvs -}}
             {{ toYaml .Values.extraEnvs | nindent 12 }}
+          {{- end }}
+          {{- if .Values.extraEnvsFrom }}
+          envFrom:
+            {{- toYaml .Values.extraEnvsFrom | nindent 12 }}
           {{- end }}
           volumeMounts:
             {{- if .Values.extraCaCerts }}
