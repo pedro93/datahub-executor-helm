@@ -6,7 +6,7 @@ $ kubectl create secret generic datahub-access-token-secret --from-literal=datah
 
 # Deploy executor with worker ID "remote" and GMS URL "https://company.acryl.io/gms"
 $ helm install \
-  --set global.datahub.executor.worker_id="remote" \
+  --set global.datahub.executor.pool_id="remote" \
   --set global.datahub.gms.url="https://company.acryl.io/gms" \
     default ./charts/datahub-executor-worker
 ```
