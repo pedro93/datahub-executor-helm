@@ -2,8 +2,8 @@ apiVersion: v2
 name: datahub-executor-worker
 description: A Helm chart for datahub-executor-worker
 type: application
-version: 0.0.16
-appVersion: 0.3.8.2
+version: 0.0.17
+appVersion: 0.3.9.3
 maintainers:
   - name: DataHub
     email: datahub@acryl.io
