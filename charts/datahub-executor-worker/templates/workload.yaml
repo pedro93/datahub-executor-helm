@@ -136,6 +136,8 @@ spec:
               value: "worker"
             - name: DATAHUB_EXECUTOR_POOL_ID
               value: {{ .Values.global.datahub.executor.pool_id | quote }}
+            - name: DATAHUB_EXECUTOR_WORKER_ID
+              value: {{ .Values.global.datahub.executor.pool_id | quote }}
             - name: DATAHUB_EXECUTOR_INGESTION_MAX_WORKERS
               value: {{ .Values.global.datahub.executor.ingestions.max_workers | quote }}
             - name: DATAHUB_EXECUTOR_INGESTION_SIGNAL_POLL_INTERVAL
